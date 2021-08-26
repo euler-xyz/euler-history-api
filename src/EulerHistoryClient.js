@@ -27,13 +27,13 @@ class EulerHistoryClient {
     this.ws.onopen = () => {
       this.reconnectTimeout = initialReconnectTimeout;
 
+      if (this.opts.onConnect) this.opts.onConnect();
+
       this.send("hello", { version: this.opts.version, }, (err, helloResponse) => {
         if (err) {
           console.error("Connection error: ", err);
           return;
         }
-
-        if (this.opts.onConnect) this.opts.onConnect(helloResponse);
       });
 
       for (let msg of this.pendingMessagesToSend) {
