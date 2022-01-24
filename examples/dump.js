@@ -7,7 +7,7 @@ enablePatches();
 
 let ec = new EulerHistoryClient({
                version: 'example code',
-               endpoint: 'ws://ec2-34-240-240-47.eu-west-1.compute.amazonaws.com:8900',
+               endpoint: 'wss://escan-mainnet.euler.finance',
                WebSocket,
                onConnect: () => {
                    console.log("CONNECTED");
@@ -23,7 +23,7 @@ ec.connect();
 
 let logs;
 
-ec.sub({ cmd: 'sub', query: { topic: 'logs', limit: 10, }, }, (err, patch) => {
+ec.sub({ cmd: 'sub', query: { topic: 'logs', limit: 100, offset: 0, }, }, (err, patch) => {
     if (err) {
         console.log(`ERROR: ${err}`);
         return;
@@ -32,5 +32,5 @@ ec.sub({ cmd: 'sub', query: { topic: 'logs', limit: 10, }, }, (err, patch) => {
     for (let p of patch.result) p.path = p.path.split('/').filter(e => e !== '');
     logs = applyPatches(logs, patch.result);
 
-    console.log("Logs", logs);
+    console.log(logs);
 });
