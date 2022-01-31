@@ -1,11 +1,11 @@
 const initialReconnectTimeout = 500;
 const reconnectTimeCeiling = 8000;
 
-class EulerHistoryClient {
+class EulerScanClient {
   constructor(opts) {
     this.opts = opts;
 
-    if (!this.opts.version) throw(`must provide version to EulerHistoryClient`);
+    if (!this.opts.version) throw(`must provide version to EulerScanClient`);
 
     this.nextId = 1;
     this.cbs = {};
@@ -27,13 +27,13 @@ class EulerHistoryClient {
     this.ws.onopen = () => {
       this.reconnectTimeout = initialReconnectTimeout;
 
-      if (this.opts.onConnect) this.opts.onConnect();
-
       this.send("hello", { version: this.opts.version, }, (err, helloResponse) => {
         if (err) {
           console.error("Connection error: ", err);
           return;
         }
+
+        if (this.opts.onConnect) this.opts.onConnect(helloResponse);
       });
 
       for (let msg of this.pendingMessagesToSend) {
@@ -55,7 +55,7 @@ class EulerHistoryClient {
 
       if (msg.fin) this.clearId(msg.id);
 
-      cb(null, msg);
+      cb(msg.error || null, msg);
     };
 
     this.ws.onclose = () => {
@@ -156,4 +156,4 @@ class EulerHistoryClient {
   }
 }
 
-module.exports = EulerHistoryClient;
+module.exports = EulerScanClient;

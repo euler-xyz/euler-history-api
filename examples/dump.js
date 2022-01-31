@@ -1,11 +1,11 @@
 const WebSocket = require('ws');
 const {enablePatches, applyPatches} = require('immer');
-const EulerHistoryClient = require("../src/EulerHistoryClient.js");
+const EulerScanClient = require("../src/EulerScanClient.js");
 
 enablePatches();
 
 
-let ec = new EulerHistoryClient({
+let ec = new EulerScanClient({
                version: 'example code',
                endpoint: 'wss://escan-mainnet.euler.finance',
                WebSocket,
