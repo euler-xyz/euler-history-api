@@ -17,6 +17,11 @@ class EulerScanClient {
     this.heartBeatInterval = setInterval(() => {
       if (this.ws === undefined || this.ws.readyState !== 1) return;
       this.send('ping', {}, () => {});
+
+      this.pingTimeout = setTimeout(() => {
+        if (this.ws) this.ws.close();
+        else throw(`EulerScanClient: pong timeout, ws undefined`);
+      }, 1000);
     }, (this.opts.pingFreqMilliseconds || 55000));
   }
 
@@ -49,6 +54,12 @@ class EulerScanClient {
 
     this.ws.onmessage = (msgStr) => {
       let msg = JSON.parse(msgStr.data);
+
+      if(msg.pong) {
+        if(this.pingTimeout) clearTimeout(this.pingTimeout);
+        this.pingTimeout = undefined;
+        return;
+      }
 
       let cb = this.cbs[msg.id];
       if (!cb) return; // probably already unsubscribed
@@ -153,6 +164,8 @@ class EulerScanClient {
     this.ws = undefined;
     if (this.heartBeatInterval) clearInterval(this.heartBeatInterval);
     this.heartBeatInterval = undefined;
+    if(this.pingTimeout) clearTimeout(this.pingTimeout);
+    this.pingTimeout = undefined;
   }
 }
 
