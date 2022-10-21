@@ -53,7 +53,14 @@ class EulerScanClient {
     };
 
     this.ws.onmessage = (msgStr) => {
-      let msg = JSON.parse(msgStr.data);
+      let msg = {};
+      let err = null;
+      try {
+        msg = JSON.parse(msgStr.data);
+      } catch (e) {
+        err = e;
+      }
+      err = err || msg.error || null;
 
       if(msg.pong) {
         if(this.pingTimeout) clearTimeout(this.pingTimeout);
@@ -61,17 +68,23 @@ class EulerScanClient {
         return;
       }
 
-      let cb = this.cbs[msg.id];
-      if (!cb) return; // probably already unsubscribed
-
       if (msg.fin) this.clearId(msg.id);
 
-      cb(msg.error || null, msg);
+      let cb = this.cbs[msg.id]
+      if (!cb) {
+        if (err) throw new Error(err);
+        else return; // probably already unsubscribed
+      }
+
+      cb(err, msg);
     };
 
     this.ws.onclose = () => {
       if (this.shuttingDown) return;
       this.ws = undefined;
+
+      if (this.pingTimeout) clearTimeout(this.pingTimeout)
+      this.pingTimeout = undefined
 
       if (this.timeoutWatcher) {
         clearTimeout(this.timeoutWatcher);
